@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analizador Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>:root {
+        --color-primario: #4361ee;
+        --color-secundario: #3a0ca3;
+        --color-fondo: #ADD8E6;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: var(--color-fondo);
+        padding: 15px;
+        margin: 0;
+    }
+
+    .resultado {
+        background: white;
+        padding: 15px;
+        margin-top: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .resultado.horizontal p {
+        display: block;
+    }
+
+    .resultado.vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .resultado.vertical p {
+        margin: 0;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        background-color: #f9f9f9;
+    }
+    :root {
+        --color-primario: #4361ee; /* Color azul */
+        --color-secundario: #3a0ca3; /* Color púrpura */
+        --color-fondo: #ADD8E6; /* Azul claro */
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: var(--color-fondo);
+        padding: 15px;
+        margin: 0;
+    }
+    .botonera-principal, .botonera-secundaria {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 15px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .botonera-principal button, .botonera-secundaria button {
+        flex: 1;
+        min-width: 120px;
+        max-width: 200px;
+    }
+
+    .botonera-principal button {
+        background: var(--color-primario);
+        color: white;
+    }
+
+    .botonera-secundaria button {
+        background: var(--color-secundario);
+        color: white;
+        opacity: 0.7;
+    }
+
+    .botonera-secundaria button.activo {
+        opacity: 1;
+    }
+
+    button {
+        padding: 12px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .tab {
+        display: none;
+    }
+
+    .tab.activo {
+        display: block;
+    }
+
+    .subtab {
+        display: none;
+    }
+
+    .subtab.activo {
+        display: block;
+    }
+
+    textarea, input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+    textarea {
+        height: 150px;
+    }
+
+    .resultado {
+        background: white;
+        padding: 15px;
+        margin-top: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .grafica-container {
+        width: 100%;
+        height: 300px;
+        margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Botonera Principal -->
+  <div class="botonera-principal">
+    <button onclick="mostrarTab('contador')">Contador</button>
+    <button onclick="mostrarTab('patrones')">Patrones</button>
+    <button onclick="mostrarTab('grafica')">Gráfica</button>
+  </div>
+
+  <!-- Contador de Cambios -->
+  <div id="contador" class="tab">
+    <h2>Contador de Cambios</h2>
+    <textarea id="input-contador" placeholder="Pega tu secuencia numérica..."></textarea>
+    <button onclick="contarCambios()">Calcular Cambios</button>
+    <div id="resultado-contador" class="resultado"></div>
+  </div>
+
+  <!-- Buscador de Patrones -->
+  <div id="patrones" class="tab">
+    <div class="botonera-secundaria">
+      <button onclick="mostrarSubTab(event, 'busqueda-simple')" class="activo">Búsqueda Simple</button>
+      <button onclick="mostrarSubTab(event, 'patrones-complejos')">Patrones Complejos</button>
+      <button onclick="mostrarSubTab(event, 'analisis-archivo')">Análisis de Archivo</button>
+      <button onclick="mostrarSubTab(event, 'patrones-disonantes')">Patrones Disonantes</button>
+    </div>
+
+    <!-- Búsqueda Simple -->
+    <div id="busqueda-simple" class="subtab activo">
+      <h3>Búsqueda de Patrón Simple</h3>
+      <textarea id="input-texto" placeholder="Pega tu texto aquí..."></textarea>
+      <input type="text" id="input-patron" placeholder="Patrón a buscar (ej: 123)">
+      <button onclick="buscarPatronSimple()">Buscar Patrón</button>
+      <div id="resultado-simple" class="resultado"></div>
+    </div>
+
+    <!-- Patrones Complejos -->
+    <div id="patrones-complejos" class="subtab">
+      <h3>Búsqueda por Rango de Cambios</h3>
+      <textarea id="input-complejo" placeholder="Ej: 123123123"></textarea>
+      <label>Longitud del patrón:</label>
+      <input type="number" id="longitud-patron" min="1" value="10">
+      <div class="rango-cambios">
+        <div>
+          <label>Mín. cambios:</label>
+          <input type="number" id="min-cambios" min="1" value="1">
+        </div>
+        <div>
+          <label>Máx. cambios:</label>
+          <input type="number" id="max-cambios" min="1" value="13">
+        </div>
+      </div>
+      <button onclick="buscarPatronesComplejos()">Buscar Interrupciones</button>
+      <div id="resultado-complejo" class="resultado"></div>
+      <div id="patrones-encontrados" class="patrones-encontrados"></div>
+    </div>
+
+    <!-- Patrones Disonantes -->
+    <div id="patrones-disonantes" class="subtab">
+      <h3>Búsqueda de Patrones Disonantes</h3>
+      <textarea id="input-disonante" placeholder="Pega tu texto aquí..."></textarea>
+      <label>Rango de interrupciones a buscar (ej: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13):</label>
+      <input type="text" id="rango-interrupciones" value="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13">
+      <label>Líneas seguidas a buscar con características extremas:</label>
+      <input type="number" id="lineas-seguidas" min="1" value="4">
+      <button onclick="buscarPatronesDisonantes()">Buscar Patrones Disonantes</button>
+      <div id="resultado-disonante" class="resultado"></div>
+      <div id="resumen-patrones" class="resultado"></div>
+    </div>
+
+    <!-- Análisis de Archivo -->
+id="analisis-archivo" class="subtab">
+      <h3>Análisis Masivo</h3>
+      <textarea id="input-archivo" placeholder="Pega aquí miles de líneas..."></textarea>
+      <input type="text" id="patron-archivo" placeholder="Patrón a buscar (ej: 123)">
+      <button onclick="analizarArchivo()">Analizar Archivo</button>
+      <button onclick="predecirProximasLineas()">Predecir Próximas 50 Líneas</button>
+      <button onclick="alternarVista()">Alternar Vista</button>
+      <div id="resultado-prediccion" class="resultado horizontal"></div>
+    <div id="analisis-archivo" class="subtab">
+      <h3>Análisis Masivo</h3>
+      <textarea id="input-archivo" placeholder="Pega aquí miles de líneas..."></textarea>
+      <input type="text" id="patron-archivo" placeholder="Patrón a buscar (ej: 123)">
+      <button onclick="analizarArchivo()">Analizar Archivo</button>
+      <button onclick="predecirProximasLineas()">Predecir Próximas 50 Líneas</button>
+      <div id="resultado-archivo" class="resultado"></div>
+      <div id="resultado-prediccion" class="resultado"></div>
+    </div>
+  </div>
+
+  <!-- Pestaña Gráfica -->
+  <div id="grafica" class="tab">
+    <h2>Visualización Gráfica</h2>
+    <div class="grafica-container">
+      <canvas id="grafica-resultados"></canvas>
+    </div>
+    <button onclick="generarGrafica()">Generar Gráfica</button>
+    <div class="resultado">
+      <p>La gráfica mostrará los resultados del contador y buscador de patrones.</p>
+    </div>
+  </div>
+
+  <script>let grafica = null; // Variable para la gráfica
+let patronesPosiciones = []; // Posiciones de los patrones encontrados
+let vistaVertical = false; // NUEVA VARIABLE: Para controlar si la vista es vertical o horizontal
+
+// ===== FUNCIONES PRINCIPALES =====
+function mostrarTab(tabId) {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('activo');
+  });
+  document.getElementById(tabId).classList.add('activo');
+}
+
+// ===== FUNCIONES PRINCIPALES =====
+function mostrarTab(tabId) {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('activo');
+  });
+  document.getElementById(tabId).classList.add('activo');
+}
+
+function mostrarSubTab(event, subTabId) {
+  document.querySelectorAll('.subtab').forEach(tab => {
+    tab.classList.remove('activo');
+  });
+  document.getElementById(subTabId).classList.add('activo');
+  
+  document.querySelectorAll('.botonera-secundaria button').forEach(btn => {
+    btn.classList.remove('activo');
+  });
+  event.target.classList.add('activo');
+}
+
+// ===== CONTADOR DE CAMBIOS =====
+function contarCambios() {
+  const input = document.getElementById('input-contador').value.trim();
+  if (!input) {
+    alert('Ingresa una secuencia numérica');
+    return;
+  }
+
+  const lineas = input.split('\n');
+  let resultadoHTML = '<p><strong>Resultado por línea:</strong></p>';
+
+  lineas.forEach((linea, index) => {
+    let cambios = 0;
+    for (let i = 1; i < linea.length; i++) {
+      if (linea[i] !== linea[i - 1]) cambios++;
+    }
+    resultadoHTML += `<p>Línea ${index + 1}: ${cambios} cambios</p>`;
+  });
+
+  document.getElementById('resultado-contador').innerHTML = resultadoHTML;
+}
+
+// ===== BÚSQUEDA SIMPLE =====
+function buscarPatronSimple() {
+  const texto = document.getElementById('input-texto').value;
+  const patron = document.getElementById('input-patron').value.trim();
+
+  if (!texto || !patron) {
+    alert('Completa ambos campos');
+    return;
+  }
+
+  const regex = new RegExp(patron, 'g');
+  const resultados = texto.match(regex) || [];
+  patronesPosiciones = obtenerPosiciones(texto, patron);
+  
+  document.getElementById('resultado-simple').innerHTML = `
+    <p><strong>Patrón buscado:</strong> "${patron}"</p>
+    <p><strong>Veces encontrado:</strong> ${resultados.length}</p>
+    ${resultados.length > 0 ? `
+      <p><strong>Posiciones:</strong> ${patronesPosiciones.join(', ')}</p>
+    ` : ''}
+  `;
+}
+
+// ===== PATRONES COMPLEJOS =====
+function buscarPatronesComplejos() {
+  const input = document.getElementById('input-complejo').value.trim();
+  const longitud = parseInt(document.getElementById('longitud-patron').value);
+  const minCambios = parseInt(document.getElementById('min-cambios').value);
+  const maxCambios = parseInt(document.getElementById('max-cambios').value);
+
+  if (!input || isNaN(longitud)) {
+    alert('Ingresa datos válidos');
+    return;
+  }
+
+  const lineas = input.split('\n');
+  let resultadoHTML = '<p><strong>Interrupciones por línea:</strong></p>';
+  const totalLineas = lineas.length;
+  const patronesEncontrados = {};
+
+  lineas.forEach((linea, index) => {
+    if (linea.length < longitud) return;
+
+    let cambios = 0;
+    for (let i = 1; i < longitud; i++) {
+      if (linea[i] !== linea[i - 1]) cambios++;
+    }
+    resultadoHTML += `<p>Línea ${index + 1}: ${cambios} interrupciones</p>`;
+
+    if (cambios >= minCambios && cambios <= maxCambios) {
+      if (!patronesEncontrados[cambios]) {
+        patronesEncontrados[cambios] = 0;
+      }
+      patronesEncontrados[cambios]++;
+    }
+  });
+
+  let patronesHTML = '<p><strong>Patrones encontrados:</strong></p>';
+  for (const [patron, count] of Object.entries(patronesEncontrados)) {
+    const porcentaje = ((count / totalLineas) * 100).toFixed(2);
+    patronesHTML += `<p>Patrón de ${patron} interrupciones: ${count} veces (${porcentaje}%)</p>`;
+  }
+
+  document.getElementById('resultado-complejo').innerHTML = resultadoHTML;
+  document.getElementById('patrones-encontrados').innerHTML = patronesHTML;
+}
+
+// ===== PATRONES DISONANTES =====
+function buscarPatronesDisonantes() {
+  const input = document.getElementById('input-disonante').value.trim();
+  const rangoInterrupciones = document.getElementById('rango-interrupciones').value.split(',').map(Number);
+  const lineasSeguidas = parseInt(document.getElementById('lineas-seguidas').value);
+
+  if (!input || !rangoInterrupciones.length || isNaN(lineasSeguidas)) {
+    alert('Ingresa datos válidos');
+    return;
+  }
+
+  const lineas = input.split('\n');
+  let totalPatrones = 0;
+  let resultadoHTML = '<p><strong>Patrones disonantes:</strong></p>';
+  let resumenPatrones = '<p><strong>Resumen de patrones:</strong></p>';
+
+  for (let i = 0; i <= lineas.length - lineasSeguidas;) {
+    let interrupcionesEnVentana = 0;
+    let ventanaEncontrada = false;
+    for (let j = 0; j < lineasSeguidas; j++) {
+      const linea = lineas[i + j];
+      let cambios = 0;
+      for (let k = 1; k < linea.length; k++) {
+        if (linea[k] !== linea[k - 1]) cambios++;
+      }
+      if (rangoInterrupciones.includes(cambios)) {
+        interrupcionesEnVentana++;
+      }
+    }
+    if (interrupcionesEnVentana === lineasSeguidas) {
+      resultadoHTML += `<p>Ventana desde línea ${i + 1} hasta línea ${i + lineasSeguidas}</p>`;
+      ventanaEncontrada = true;
+      totalPatrones++;
+      i += lineasSeguidas; // Saltar a la siguiente ventana después de encontrar una
+    }
+    if (!ventanaEncontrada) {
+      i++; // Continuar con la siguiente línea
+    }
+  }
+
+  const porcentajePatrones = ((totalPatrones / (lineas.length / lineasSeguidas)) * 100).toFixed(2);
+  resumenPatrones += `<p>Total de patrones encontrados: ${totalPatrones}</p>`;
+  resumenPatrones += `<p>Porcentaje de patrones encontrados: ${porcentajePatrones}%</p>`;
+
+  document.getElementById('resultado-disonante').innerHTML = resultadoHTML;
+  document.getElementById('resumen-patrones').innerHTML = resumenPatrones;
+}
+
+// ===== ANÁLISIS DE ARCHIVO =====
+function analizarArchivo() {
+  const input = document.getElementById('input-archivo').value.trim();
+  const patron = document.getElementById('patron-archivo').value.trim();
+
+  if (!input || !patron) {
+    alert('Completa ambos campos');
+    return;
+  }
+
+  const regex = new RegExp(patron, 'g');
+  const resultados = input.match(regex) || [];
+  patronesPosiciones = obtenerPosiciones(input, patron);
+  
+  document.getElementById('resultado-archivo').innerHTML = `
+    <p><strong>Patrón buscado:</strong> "${patron}"</p>
+    <p><strong>Veces encontrado:</strong> ${resultados.length}</p>
+  `;
+}
+
+// ===== PREDICCIÓN DE LÍNEAS =====
+function predecirProximasLineas() {
+  const input = document.getElementById('input-archivo').value.trim();
+  if (!input) {
+    alert('Ingresa el contenido del archivo para predecir.');
+    return;
+  }
+
+  const lineas = input.split('\n');
+  const ultimaLinea = lineas[lineas.length - 1];
+  const siguientesLineas = [];
+
+  for (let i = 0; i < 50; i++) {
+    const siguiente = predecirSiguienteLinea(ultimaLinea);
+    siguientesLineas.push(siguiente);
+  }
+
+  document.getElementById('resultado-prediccion').innerHTML = `
+    <p><strong>Predicción de las próximas 50 líneas:</strong></p>
+    ${siguientesLineas.map((linea, index) => `<p>Línea ${index + 1}: ${linea}</p>`).join('')}
+  `;
+}
+
+function predecirSiguienteLinea(linea) {
+  // Algoritmo de predicción simple basado en la última línea
+  let siguiente = '';
+  for (let i = 0; i < linea.length; i++) {
+    siguiente += String.fromCharCode(linea.charCodeAt(i) + 1);
+  }
+  return siguiente;
+}
+
+// ===== FUNCIONES AUXILIARES =====
+function obtenerPosiciones(texto, patron) {
+  const posiciones = [];
+  let index = texto.indexOf(patron);
+  while (index !== -1) {
+    posiciones.push(index);
+    index = texto.indexOf(patron, index + 1);
+  }
+  return posiciones;
+}
+// ===== GRAFICA =====
+function generarGrafica() {
+  if (patronesPosiciones.length === 0) {
+    alert('No se encontraron patrones previamente.');
+    return;
+  }
+
+  const totalLength = patronesPosiciones[patronesPosiciones.length - 1] + 1;
+
+  const porcentajes = [];
+  const labels = ['Inicio'];
+
+  // Calcular porcentaje desde el inicio hasta el primer patrón
+  let porcentaje = (patronesPosiciones[0] / totalLength) * 100;
+  if (!isFinite(porcentaje)) porcentaje = 0;
+  porcentajes.push(porcentaje.toFixed(2));
+  labels.push(`0% - ${porcentaje.toFixed(2)}%`);
+
+  // Calcular porcentajes entre los patrones sucesivos
+  for (let i = 1; i < patronesPosiciones.length; i++) {
+    let diff = patronesPosiciones[i] - patronesPosiciones[i - 1];
+    if (diff <= 0) diff = 1; // evitar división por cero
+    porcentaje = (diff / totalLength) * 100;
+    if (!isFinite(porcentaje)) porcentaje = 0;
+    porcentajes.push(porcentaje.toFixed(2));
+    labels.push(`${porcentaje.toFixed(2)}%`);
+  }
+
+  // Calcular porcentaje desde el último patrón hasta el final
+  let lastDiff = totalLength - patronesPosiciones[patronesPosiciones.length - 1];
+  if (lastDiff <= 0) lastDiff = 1; // evitar división por cero
+  porcentaje = (lastDiff / totalLength) * 100;
+  if (!isFinite(porcentaje)) porcentaje = 0;
+  porcentajes.push(porcentaje.toFixed(2));
+  labels.push(`${porcentaje.toFixed(2)}% - 100%`);
+
+  if (grafica) {
+    grafica.destroy();
+  }
+
+  const ctx = document.getElementById('grafica-resultados').getContext('2d');
+  grafica = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Distribución de patrones',
+        data: porcentajes,
+        borderColor: 'rgba(67, 97, 238, 1)',
+        backgroundColor: 'rgba(67, 97, 238, 0.2)',
+        fill: true,
+        tension: 0.1
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Porcentajes del recorrido'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Porcentajes (%)'
+          }
+        }
+      }
+    }
+  });
+}
+
+// ===== PREDICCIÓN DE LÍNEAS =====
+function predecirProximasLineas() {
+  const input = document.getElementById('input-archivo').value.trim();
+  if (!input) {
+    alert('Ingresa el contenido del archivo para predecir.');
+    return;
+  }
+
+  const lineas = input.split('\n');
+  const ultimaLinea = lineas[lineas.length - 1];
+  const siguientesLineas = [];
+
+  for (let i = 0; i < 50; i++) {
+    const siguiente = predecirSiguienteLinea(ultimaLinea);
+    siguientesLineas.push(siguiente);
+  }
+
+  document.getElementById('resultado-prediccion').innerHTML = `
+    <p><strong>Predicción de las próximas 50 líneas:</strong></p>
+    ${siguientesLineas.map((linea, index) => `<p>Línea ${index + 1}: ${linea}</p>`).join('')}
+  `;
+}
+
+function predecirSiguienteLinea(linea) {
+  // Algoritmo de predicción simple basado en la última línea
+  let siguiente = '';
+  for (let i = 0; i < linea.length; i++) {
+    siguiente += String.fromCharCode(linea.charCodeAt(i) + 1);
+  }
+  return siguiente;
+}
+</script>
+
+<!-- Contenedor para mostrar la predicción de las próximas 50 líneas -->
+<div id="resultado-prediccion" class="resultado"></div>
+
+</body>
+</html>
+  </style>
+</head>
+<body>
+  <!-- Configuración de Mapeo de Caracteres -->
+  <h3>Configuración de Mapeo de Caracteres</h3>
+  <textarea id="input-mapeo" placeholder="Introduce el mapeo de caracteres en formato JSON. Ejemplo: {'1': '1', '2': '2', 'A': 'A', 'B': 'B'}"></textarea>
+  <button onclick="actualizarMapeo()">Actualizar Mapeo</button>
+
+  <!-- Análisis de Archivo -->
+  <div id="analisis-archivo" class="subtab">
+    <h3>Análisis Masivo</h3>
+    <textarea id="input-archivo" placeholder="Pega aquí miles de líneas..."></textarea>
+    <input type="text" id="patron-archivo" placeholder="Patrón a buscar (ej: 123)">
+    <button onclick="analizarArchivo()">Analizar Archivo</button>
+    <button onclick="predecirProximasLineas()">Predecir Próximas 50 Líneas</button>
+    <div id="resultado-archivo" class="resultado"></div>
+    <div id="resultado-prediccion" class="resultado"></div>
+  </div>
+
+  <script>
+    let charMap = {
+      '1': '1',
+      '2': '2',
+      'A': 'A',
+      'B': 'B',
+      // Añade aquí los mapeos de caracteres adicionales que necesites
+    };
+
+    function actualizarMapeo() {
+      const inputMapeo = document.getElementById('input-mapeo').value.trim();
+      try {
+        const nuevoMapeo = JSON.parse(inputMapeo);
+        charMap = nuevoMapeo;
+        alert('Mapeo actualizado correctamente.');
+      } catch (error) {
+        alert('Error al actualizar el mapeo. Asegúrate de que el formato JSON es correcto.');
+      }
+    }// Aplicar la vista actual
+      actualizarVista();
+    }
+
+    function alternarVista() {
+      vistaVertical = !vistaVertical;
+      actualizarVista();
+    }
+
+    function actualizarVista() {
+      const resultadoDiv = document.getElementById('resultado-prediccion');
+      if (vistaVertical) {
+        resultadoDiv.classList.remove('horizontal');
+        resultadoDiv.classList.add('vertical');
+      } else {
+        resultadoDiv.classList.remove('vertical');
+        resultadoDiv.classList.add('horizontal');
+      }
+
+    function predecirSiguienteLinea(linea) {
+      let siguiente = '';
+      for (let i = 0; i < linea.length; i++) {
+        const char = linea[i];
+        siguiente += charMap[char] || char; // Utiliza el mapeo o deja el carácter sin cambios si no está en el mapeo
+      }
+      return siguiente;
+    }
+
+    function predecirProximasLineas() {
+      const input = document.getElementById('input-archivo').value.trim();
+      if (!input) {
+        alert('Ingresa el contenido del archivo para predecir.');
+        return;
+      }
+
+      const lineas = input.split('\n');
+      let ultimaLinea = lineas[lineas.length - 1];
+      const siguientesLineas = [];
+
+      for (let i = 0; i < 50; i++) {
+        ultimaLinea = predecirSiguienteLinea(ultimaLinea);
+        siguientesLineas.push(ultimaLinea);
+      }
+
+      document.getElementById('resultado-prediccion').innerHTML = `
+        <p><strong>Predicción de las próximas 50 líneas:</strong></p>
+        ${siguientesLineas.map((linea, index) => `<p>Línea ${index + 1}: ${linea}</p>`).join('')}
+      `;
+    }function analizarEstadisticas(lineas) {
+  const frecuencias = {};
+  const totalCaracteres = { total: 0 };
+
+  // Calcular frecuencias de caracteres
+  lineas.forEach(linea => {
+    for (const char of linea) {
+      if (!frecuencias[char]) frecuencias[char] = 0;
+      frecuencias[char]++;
+      totalCaracteres.total++;
+    }
+  });
+
+  // Normalizar frecuencias (convertir a probabilidades)
+  for (const char in frecuencias) {
+    frecuencias[char] /= totalCaracteres.total;
+  }
+
+  return frecuencias;
+}
+
+function generarLineaProbabilistica(frecuencias, longitud) {
+  const chars = Object.keys(frecuencias);
+  const probabilidades = Object.values(frecuencias);
+  let resultado = '';
+
+  for (let i = 0; i < longitud; i++) {
+    const random = Math.random();
+    let suma = 0;
+
+    for (let j = 0; j < chars.length; j++) {
+      suma += probabilidades[j];
+      if (random <= suma) {
+        resultado += chars[j];
+        break;
+      }
+    }
+  }
+
+  return resultado;
+}
+
+function predecirProximasLineas() {
+  const input = document.getElementById('input-archivo').value.trim();
+  if (!input) {
+    alert('Ingresa el contenido del archivo para predecir.');
+    return;
+  }
+
+  const lineas = input.split('\n');
+  const ultimaLinea = lineas[lineas.length - 1];
+
+  // Analizar estadísticas del archivo completo
+  const frecuencias = analizarEstadisticas(lineas);
+
+  // Generar 50 líneas basadas en probabilidades
+  const siguientesLineas = [];
+  for (let i = 0; i < 50; i++) {
+    const nuevaLinea = generarLineaProbabilistica(frecuencias, ultimaLinea.length);
+    siguientesLineas.push(nuevaLinea);
+  }
+
+  // Mostrar resultados
+  document.getElementById('resultado-prediccion').innerHTML = `
+    <p><strong>Predicción de las próximas 50 líneas:</strong></p>
+    ${siguientesLineas.map((linea, index) => `<p>Línea ${index + 1}: ${linea}</p>`).join('')}
+  `;
+}
+    // Autoguardado de datos en localStorage y restauración automática
+    document.addEventListener('DOMContentLoaded', () => {
+      const campos = [
+        'input-contador',
+        'input-texto',
+        'input-patron',
+        'input-complejo',
+        'longitud-patron',
+        'min-cambios',
+        'max-cambios',
+        'input-disonante',
+        'rango-interrupciones',
+        'lineas-seguidas',
+        'input-archivo',
+        'patron-archivo',
+        'input-mapeo'
+      ];
+
+      campos.forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) {
+          const valorGuardado = localStorage.getItem(id);
+          if (valorGuardado !== null) {
+            campo.value = valorGuardado;
+          }
+
+          campo.addEventListener('input', () => {
+            localStorage.setItem(id, campo.value);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
